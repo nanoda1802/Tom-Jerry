@@ -28,16 +28,16 @@ const GROUND_HEIGHT = 24; // 바닥 높이
 const GROUND_SPEED = 0.5; // 바닥 기본 속도
 // [3-2] 선인장, 세 종류 각각의 너비 & 높이 & 이미지파일
 const CACTI_CONFIG = [
-  { width: 48 / 1.5, height: 100 / 1.5, image: "images/cactus_1.png" },
-  { width: 98 / 1.5, height: 100 / 1.5, image: "images/cactus_2.png" },
-  { width: 68 / 1.5, height: 70 / 1.5, image: "images/cactus_3.png" },
+  { width: 100 / 1.5, height: 100 / 1.5, image: "images/jerry_standing.png" },
+  { width: 100 / 1.5, height: 100 / 1.5, image: "images/jerry_jump.png" },
+  { width: 100 / 1.5, height: 100 / 1.5, image: "images/jerry_standing.png" },
 ];
 // [3-3] 아이템, 네 종류 각각의너비 & 높이 & 아이디 & 이미지파일
 const ITEM_CONFIG = [
-  { width: 50 / 1.5, height: 50 / 1.5, id: 1, image: "images/items/pokeball_red.png" },
-  { width: 50 / 1.5, height: 50 / 1.5, id: 2, image: "images/items/pokeball_yellow.png" },
-  { width: 50 / 1.5, height: 50 / 1.5, id: 3, image: "images/items/pokeball_purple.png" },
-  { width: 50 / 1.5, height: 50 / 1.5, id: 4, image: "images/items/pokeball_cyan.png" },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 1, image: "images/items/coin1.png" },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 2, image: "images/items/star.png" },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 3, image: "images/items/coin3.png" },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 4, image: "images/items/coin4.png" },
 ];
 
 // [4] 게임 요소 초기화
