@@ -1,5 +1,4 @@
 import { CLIENT_VERSION } from "./Constants.js";
-import { io } from "socket.io-client"; // 클라이언트용 socket.io
 
 /* 소켓 연결 초기화 */
 const socket = io("http://localhost:3000", {
