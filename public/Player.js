@@ -21,8 +21,8 @@ class Player {
     this.maxJumpHeight = maxJumpHeight;
     this.scaleRatio = scaleRatio;
 
-    this.x = 10 * scaleRatio;
-    this.y = this.canvas.height - this.height - 1.5 * scaleRatio;
+    this.x = 250 * scaleRatio;
+    this.y = this.canvas.height - 15 - this.height - 1.5 * scaleRatio;
     // 기본 위치 상수화
     this.yStandingPosition = this.y;
 

@@ -1,4 +1,5 @@
 import Player from "./Player.js";
+import Boss from "./Boss.js";
 import Ground from "./Ground.js";
 import CactiController from "./CactiController.js";
 import Score from "./Score.js";
@@ -12,7 +13,7 @@ const ctx = canvas.getContext("2d"); // 그리기 작업 해줄 2D 렌더링 컨
 const GAME_SPEED_START = 1; // 게임 시작 시 기본 속도
 const GAME_SPEED_INCREMENT = 0.00001; // 진행 시 속도 증가량
 const GAME_WIDTH = 800; // 화면 너비
-const GAME_HEIGHT = 200; // 화면 높이
+const GAME_HEIGHT = 300; // 화면 높이
 
 // [2] 플레이어 설정
 // 800 * 200 사이즈의 캔버스에서는 이미지의 기본크기가 크기때문에 1.5로 나눈 값을 사용. (비율 유지)
@@ -24,24 +25,29 @@ const MIN_JUMP_HEIGHT = 150; // 최소 점프 높이
 // [3] 오브젝트 설정
 // [3-1] 바닥
 const GROUND_WIDTH = 2400; // 바닥 너비
-const GROUND_HEIGHT = 24; // 바닥 높이
+const GROUND_HEIGHT = GAME_HEIGHT; // 바닥 높이
 const GROUND_SPEED = 0.5; // 바닥 기본 속도
 // [3-2] 선인장, 세 종류 각각의 너비 & 높이 & 이미지파일
 const CACTI_CONFIG = [
-  { width: 100 / 1.5, height: 100 / 1.5, image: "images/jerry_standing.png" },
-  { width: 100 / 1.5, height: 100 / 1.5, image: "images/jerry_jump.png" },
-  { width: 100 / 1.5, height: 100 / 1.5, image: "images/jerry_standing.png" },
+  { width: 90 / 1.5, height: 90 / 1.5, image: "images/jerry_standing.png" },
+  { width: 90 / 1.5, height: 90 / 1.5, image: "images/jerry_jump.png" },
 ];
 // [3-3] 아이템, 네 종류 각각의너비 & 높이 & 아이디 & 이미지파일
 const ITEM_CONFIG = [
   { width: 50 / 1.5, height: 50 / 1.5, id: 1, image: "images/items/coin1.png" },
-  { width: 50 / 1.5, height: 50 / 1.5, id: 2, image: "images/items/star.png" },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 2, image: "images/items/coin2.png" },
   { width: 50 / 1.5, height: 50 / 1.5, id: 3, image: "images/items/coin3.png" },
   { width: 50 / 1.5, height: 50 / 1.5, id: 4, image: "images/items/coin4.png" },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 5, image: "images/items/coin5.png" },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 6, image: "images/items/star.png" },
 ];
+// [3-4] 보스
+const BOSS_WIDTH = 280; // 보스 너비
+const BOSS_HEIGHT = 210; // 보스 높이
 
 // [4] 게임 요소 초기화
 let player = null;
+let boss = null;
 let ground = null;
 let cactiController = null;
 let itemController = null;
@@ -60,14 +66,17 @@ function createSprites() {
   const playerHeightInGame = PLAYER_HEIGHT * scaleRatio;
   const minJumpHeightInGame = MIN_JUMP_HEIGHT * scaleRatio;
   const maxJumpHeightInGame = MAX_JUMP_HEIGHT * scaleRatio;
-  // (2) 바닥 설정 화면비율에 맞게 조정
+  // (2) 바닥 및 보스 설정 화면비율에 맞게 조정
   const groundWidthInGame = GROUND_WIDTH * scaleRatio;
   const groundHeightInGame = GROUND_HEIGHT * scaleRatio;
+  const bossWidthInGame = BOSS_WIDTH * scaleRatio;
+  const bossHeightInGame = BOSS_HEIGHT * scaleRatio;
   // (3) 조정된 설정 바탕으로 게임 요소들 인스턴스 생성
   // (3-1) 플레이어 인스턴스
   player = new Player(ctx, playerWidthInGame, playerHeightInGame, minJumpHeightInGame, maxJumpHeightInGame, scaleRatio);
-  // (3-2) 지면 인스턴스
+  // (3-2) 지면 및 보스 인스턴스
   ground = new Ground(ctx, groundWidthInGame, groundHeightInGame, GROUND_SPEED, scaleRatio);
+  boss = new Boss(ctx, bossWidthInGame, bossHeightInGame, scaleRatio);
   // (3-3) 선인장 인스턴스
   const cactiImages = CACTI_CONFIG.map((cactus) => {
     const image = new Image();
@@ -100,8 +109,6 @@ function createSprites() {
 function getScaleRatio() {
   const screenHeight = Math.min(window.innerHeight, document.documentElement.clientHeight);
   const screenWidth = Math.min(window.innerHeight, document.documentElement.clientWidth);
-
-  // window is wider than the game width
   if (screenWidth / screenHeight < GAME_WIDTH / GAME_HEIGHT) {
     return screenWidth / GAME_WIDTH;
   } else {
@@ -195,6 +202,7 @@ function gameLoop(currentTime) {
   // (4 a) 게임이 진행 중이라면, 요소들 프레임 업데이트
   if (!gameover && !waitingToStart) {
     ground.update(gameSpeed, deltaTime); // 바닥
+    boss.update(gameSpeed, deltaTime); // 보스
     cactiController.update(gameSpeed, deltaTime); // 선인장 조작
     itemController.update(gameSpeed, deltaTime); // 아이템 조작
     player.update(gameSpeed, deltaTime); // 플레이어
@@ -214,11 +222,12 @@ function gameLoop(currentTime) {
     score.getItem(collideWithItem.itemId);
   }
   // (5) 요소들 화면에 그리기
+  ground.draw();
   player.draw();
   cactiController.draw();
-  ground.draw();
-  score.draw();
   itemController.draw();
+  boss.draw();
+  score.draw();
   // (6) 게임오버 시 게임오버 화면 띄우기
   if (gameover) {
     showGameOver();
