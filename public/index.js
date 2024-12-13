@@ -2,6 +2,7 @@ import Player from "./Player.js";
 import Boss from "./Boss.js";
 import Ground from "./Ground.js";
 import CactiController from "./CactiController.js";
+import Stage from "./Stage.js";
 import Score from "./Score.js";
 import ItemController from "./ItemController.js";
 import { sendEvent } from "./Socket.js";
@@ -51,6 +52,7 @@ let boss = null;
 let ground = null;
 let cactiController = null;
 let itemController = null;
+let stage = null;
 let score = null;
 let scaleRatio = null;
 let previousTime = null;
@@ -102,8 +104,9 @@ function createSprites() {
   });
   // (3-6) 아이템 조작 인스턴스
   itemController = new ItemController(ctx, itemImages, scaleRatio, GROUND_SPEED);
-  // (3-7) 점수 인스턴스
+  // (3-7) 점수 및 스테이지 인스턴스
   score = new Score(ctx, scaleRatio);
+  stage = new Stage(ctx, scaleRatio);
 }
 // [함수] 게임 화면 비율 조정
 function getScaleRatio() {
@@ -130,11 +133,12 @@ window.addEventListener("resize", setScreen);
 if (screen.orientation) {
   screen.orientation.addEventListener("change", setScreen);
 }
+
 // [함수] 게임오버 텍스트 화면에 그림
 function showGameOver() {
   const fontSize = 70 * scaleRatio;
   ctx.font = `${fontSize}px Verdana`;
-  ctx.fillStyle = "grey";
+  ctx.fillStyle = "red";
   const x = canvas.width / 4.5;
   const y = canvas.height / 2;
   ctx.fillText("GAME OVER", x, y);
@@ -147,6 +151,15 @@ function showStartGameText() {
   const x = canvas.width / 14;
   const y = canvas.height / 2;
   ctx.fillText("Tap Screen or Press Space To Start", x, y);
+}
+// [함수] 게임클리어 텍스트 화면에 그림
+function showGameClear() {
+  const fontSize = 70 * scaleRatio;
+  ctx.font = `${fontSize}px Verdana`;
+  ctx.fillStyle = "blue";
+  const x = canvas.width / 4.5;
+  const y = canvas.height / 2;
+  ctx.fillText("GAME CLEAR!!", x, y);
 }
 // [함수] 게임 진행에 따라 증가하는 속도 반영
 function updateGameSpeed(deltaTime) {
@@ -161,6 +174,7 @@ function reset() {
   ground.reset();
   cactiController.reset();
   score.reset();
+  stage.reset();
   gameSpeed = GAME_SPEED_START;
   // (2) 서버에 게임 시작 요청
   // game-handler.js 파일의 gameStart 핸들러가 담당해 처리
@@ -182,7 +196,7 @@ function clearScreen() {
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
-// [함수]
+// [함수] 게임 루프
 function gameLoop(currentTime) {
   // (0) 게임 첫 시작 시 previousTime을 함수 실행 시간으로 업데이트
   if (previousTime === null) {
@@ -200,26 +214,36 @@ function gameLoop(currentTime) {
   // (3) 화면 초기화, 전부 흰색 네모로 덮음
   clearScreen();
   // (4 a) 게임이 진행 중이라면, 요소들 프레임 업데이트
-  if (!gameover && !waitingToStart) {
+  if (!gameover && !stage.isClear && !waitingToStart) {
     ground.update(gameSpeed, deltaTime); // 바닥
     boss.update(gameSpeed, deltaTime); // 보스
     cactiController.update(gameSpeed, deltaTime); // 선인장 조작
     itemController.update(gameSpeed, deltaTime); // 아이템 조작
     player.update(gameSpeed, deltaTime); // 플레이어
     updateGameSpeed(deltaTime); // 게임 속도 가속
-    score.update(deltaTime); // 점수 시간에 따라 증가
+    stage.update(deltaTime); // 스테이지 시간에 따라 증가
   }
-  // (4 b) 게임 진행 중 선인장과 충돌했다면 게임 오버
-  if (!gameover && cactiController.collideWith(player)) {
+  // (4 b) (수정 예정) 게임 진행 중 선인장과 충돌했다면 게임 오버
+  if (!gameover && !stage.isClear && cactiController.collideWith(player)) {
     gameover = true;
     score.setHighScore();
     setupGameReset();
+    // 서버에게 이벤트 처리 요청, gameEnd 핸들러가 담당
+    sendEvent(3, { timestamp: Date.now(), score: score.score });
   }
   // (4 c) 게임 진행 중 아이템과 충돌했다면 점수 업
   const collideWithItem = itemController.collideWith(player); //
   // 충돌한 아이템의 ID 가져와 점수 차등 적용
   if (collideWithItem && collideWithItem.itemId) {
     score.getItem(collideWithItem.itemId);
+  }
+  // (4 d) 스테이지 5에서 50초 버텼을 시 게임 클리어
+  if (!gameover && !stage.isClear && stage.stage === 5 && stage.time >= stage.stage * 1) {
+    stage.gameClear();
+    score.setHighScore();
+    setupGameReset();
+    // 서버에게 이벤트 처리 요청, gameEnd 핸들러가 담당
+    sendEvent(3, { timestamp: Date.now(), score: score.score });
   }
   // (5) 요소들 화면에 그리기
   ground.draw();
@@ -228,6 +252,8 @@ function gameLoop(currentTime) {
   itemController.draw();
   boss.draw();
   score.draw();
+  stage.draw();
+
   // (6) 게임오버 시 게임오버 화면 띄우기
   if (gameover) {
     showGameOver();
@@ -236,7 +262,11 @@ function gameLoop(currentTime) {
   if (waitingToStart) {
     showStartGameText();
   }
-  // (8) 재귀 호출 (무한반복)
+  // (8) 게임 클리어 시 게임클리어 화면 띄우기
+  if (stage.isClear) {
+    showGameClear();
+  }
+  // (9) 재귀 호출 (무한반복)
   requestAnimationFrame(gameLoop);
 }
 // [6] 프레임마다 게임 애니메이션 그려나감

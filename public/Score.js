@@ -11,20 +11,10 @@ class Score {
     this.scaleRatio = scaleRatio;
   }
 
-  update(deltaTime) {
-    this.score += deltaTime * 0.001;
-    // 점수가 10점 이상이 될 시 서버에 메세지 전송
-    if (Math.floor(this.score) === 10 && this.stageChange) {
-      this.stageChange = false;
-      // 스테이지 이동 핸들러 실행 부분
-      sendEvent(11, { currentStage: 1000, targetStage: 1001 });
-    }
-  }
-
   // 어떤 아이템을 먹었을지 판단하려면 itemId로 구분
   getItem(itemId) {
     // itemId에 따라 조건문 분기 나누기
-    this.score += 0; // 몇 점 줄 건지는 여기서 결정
+    this.score += 10; // 몇 점 줄 건지는 여기서 결정
   }
 
   reset() {
