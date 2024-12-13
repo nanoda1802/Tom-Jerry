@@ -1,7 +1,8 @@
 class Player {
   WALK_ANIMATION_TIMER = 200;
   walkAnimationTimer = this.WALK_ANIMATION_TIMER;
-  dinoRunImages = [];
+  tomRunImages = [];
+  tomJumpImages = [];
 
   //점프 상태값
   jumpPressed = false;
@@ -10,6 +11,8 @@ class Player {
 
   JUMP_SPEED = 0.6;
   GRAVITY = 0.4;
+
+  isStar = false; // 별 상태 확인
 
   // 생성자
   constructor(ctx, width, height, minJumpHeight, maxJumpHeight, scaleRatio) {
@@ -27,18 +30,35 @@ class Player {
     this.yStandingPosition = this.y;
 
     this.standingStillImage = new Image();
-    this.standingStillImage.src = "images/tom_jump.png";
+    this.standingStillImage.src = "images/tom_standing.png";
     this.image = this.standingStillImage;
 
     // 달리기
-    const dinoRunImage1 = new Image();
-    dinoRunImage1.src = "images/tom_run1.png";
+    const tomJumpImage = new Image();
+    tomJumpImage.src = "images/tom_jump.png";
 
-    const dinoRunImage2 = new Image();
-    dinoRunImage2.src = "images/tom_run2.png";
+    const tomStarJumpImage = new Image();
+    tomStarJumpImage.src = "images/tom_star_jump.png";
 
-    this.dinoRunImages.push(dinoRunImage1);
-    this.dinoRunImages.push(dinoRunImage2);
+    this.tomJumpImages.push(tomJumpImage);
+    this.tomJumpImages.push(tomStarJumpImage);
+
+    const tomRunImage1 = new Image();
+    tomRunImage1.src = "images/tom_run1.png";
+
+    const tomRunImage2 = new Image();
+    tomRunImage2.src = "images/tom_run2.png";
+
+    const tomStarRunImage1 = new Image();
+    tomStarRunImage1.src = "images/tom_star_run1.png";
+
+    const tomStarRunImage2 = new Image();
+    tomStarRunImage2.src = "images/tom_star_run2.png";
+
+    this.tomRunImages.push(tomRunImage1);
+    this.tomRunImages.push(tomRunImage2);
+    this.tomRunImages.push(tomStarRunImage1);
+    this.tomRunImages.push(tomStarRunImage2);
 
     // 키보드 설정
     // 등록된 이벤트가 있는 경우 삭제하고 다시 등록
@@ -62,10 +82,18 @@ class Player {
   };
 
   update(gameSpeed, deltaTime) {
-    this.run(gameSpeed, deltaTime);
+    if (!this.isStar) {
+      this.run(gameSpeed, deltaTime);
+    } else {
+      this.starRun(gameSpeed, deltaTime);
+    }
 
     if (this.jumpInProgress) {
-      this.image = this.standingStillImage;
+      if (!this.isStar) {
+        this.image = this.tomJumpImages[0];
+      } else {
+        this.image = this.tomJumpImages[1];
+      }
     }
 
     this.jump(deltaTime);
@@ -103,10 +131,27 @@ class Player {
 
   run(gameSpeed, deltaTime) {
     if (this.walkAnimationTimer <= 0) {
-      if (this.image === this.dinoRunImages[0]) {
-        this.image = this.dinoRunImages[1];
+      if (this.image === this.tomRunImages[0]) {
+        this.image = this.tomRunImages[1];
       } else {
-        this.image = this.dinoRunImages[0];
+        this.image = this.tomRunImages[0];
+      }
+      this.walkAnimationTimer = this.WALK_ANIMATION_TIMER;
+    }
+
+    this.walkAnimationTimer -= deltaTime * gameSpeed;
+  }
+
+  starRun(gameSpeed, deltaTime) {
+    if (this.walkAnimationTimer <= 0) {
+      if (this.image === this.tomRunImages[0]) {
+        this.image = this.tomRunImages[3];
+      } else if (this.image === this.tomRunImages[3]) {
+        this.image = this.tomRunImages[1];
+      } else if (this.image === this.tomRunImages[1]) {
+        this.image = this.tomRunImages[2];
+      } else {
+        this.image = this.tomRunImages[0];
       }
       this.walkAnimationTimer = this.WALK_ANIMATION_TIMER;
     }
