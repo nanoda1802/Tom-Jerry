@@ -31,10 +31,10 @@ export const moveStageHandler = (userId, payload) => {
   const { stages } = getGameAssets();
   // [9] 클라이언트가 목표한 다음 스테이지 정보의 ID가 서버 재료 데이터에 없으면 실패 응답
   if (!stages.data.some((stage) => stage.id === payload.targetStage)) {
-    return { status: "fail", message: "Targe stage not found" };
+    return { status: "fail", message: "Target stage not found" };
   }
   // [10] 모든 검증 통과 시 사용자의 스테이지를 다음으로 이동시키고, 이동 시간 기록
   setStage(userId, payload.targetStage, serverTime);
   // [11] 스테이지 이동 성공 응답 반환
-  return { status: "success" };
+  return { status: "success", message: "Stage is moved!!" };
 };
