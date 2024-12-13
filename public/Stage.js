@@ -16,7 +16,7 @@ class Stage {
     this.stageChange = true;
     this.time += deltaTime * 0.001;
     // 점수가 stage * 10점 이상이 될 시 서버에 메세지 전송
-    if (Math.floor(this.time) === this.stage * 1 && this.stageChange) {
+    if (Math.floor(this.time) === this.stage * 5 && this.stageChange) {
       if (this.stage === 5) {
         return;
       }
@@ -29,7 +29,7 @@ class Stage {
   }
 
   gameClear() {
-    if (this.stage === 5 && this.time >= this.stage * 1) {
+    if (this.stage === 5 && this.time >= this.stage * 5) {
       this.isClear = true;
     }
   }

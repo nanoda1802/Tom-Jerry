@@ -1,10 +1,8 @@
 import Item from "./Item.js";
 
 class ItemController {
-  INTERVAL_MIN = 0;
-  INTERVAL_MAX = 1500;
-
   nextInterval = null;
+  starInterval = null;
   items = [];
 
   constructor(ctx, itemImages, scaleRatio, speed) {
@@ -15,34 +13,40 @@ class ItemController {
     this.speed = speed;
 
     this.setNextItemTime();
+    this.setNextStarTime();
   }
 
   setNextItemTime() {
-    this.nextInterval = this.getRandomNumber(this.INTERVAL_MIN, this.INTERVAL_MAX);
+    this.nextInterval = 500;
+  }
+  setNextStarTime() {
+    this.starInterval = 5000;
   }
 
-  getRandomNumber(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
-  }
-
-  createItem() {
-    const index = this.getRandomNumber(0, this.itemImages.length - 1);
-    const itemInfo = this.itemImages[index];
+  // 랜덤이 아니라 스테이지 고정으로 나오게
+  createItem(stage) {
+    const itemInfo = this.itemImages[stage - 1];
+    const maxHeight = Math.floor(itemInfo.height / 1.5);
+    const minHeight = Math.floor((this.canvas.height - itemInfo.height) / 1.5);
     const x = this.canvas.width * 1.5;
-    const y = this.getRandomNumber(10, this.canvas.height - itemInfo.height);
+    const y = Math.floor(Math.random() * (maxHeight - minHeight + 1) + minHeight);
 
     const item = new Item(this.ctx, itemInfo.id, x, y, itemInfo.width, itemInfo.height, itemInfo.image);
 
     this.items.push(item);
   }
 
-  update(gameSpeed, deltaTime) {
-    if (this.nextInterval <= 0) {
-      this.createItem();
+  update(stage, gameSpeed, deltaTime) {
+    if (this.starInterval !== null && this.starInterval <= 0) {
+      this.createItem(6);
+      this.setNextStarTime();
+    } else if (this.nextInterval <= 0) {
+      this.createItem(stage);
       this.setNextItemTime();
     }
 
     this.nextInterval -= deltaTime;
+    this.starInterval -= deltaTime;
 
     this.items.forEach((item) => {
       item.update(this.speed, gameSpeed, deltaTime, this.scaleRatio);
@@ -54,7 +58,7 @@ class ItemController {
   draw() {
     this.items.forEach((item) => item.draw());
   }
-
+  // 부딪히면 사라지는 로직 메서드
   collideWith(sprite) {
     const collidedItem = this.items.find((item) => item.collideWith(sprite));
     if (collidedItem) {

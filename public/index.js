@@ -60,6 +60,8 @@ let gameSpeed = GAME_SPEED_START;
 let gameover = false;
 let hasAddedEventListenersForRestart = false;
 let waitingToStart = true;
+let isStar = false;
+let starTimer = 0;
 
 // [함수] 게임 요소들 생성
 function createSprites() {
@@ -173,6 +175,7 @@ function reset() {
   waitingToStart = false;
   ground.reset();
   cactiController.reset();
+  itemController.reset();
   score.reset();
   stage.reset();
   gameSpeed = GAME_SPEED_START;
@@ -218,13 +221,21 @@ function gameLoop(currentTime) {
     ground.update(gameSpeed, deltaTime); // 바닥
     boss.update(gameSpeed, deltaTime); // 보스
     cactiController.update(gameSpeed, deltaTime); // 선인장 조작
-    itemController.update(gameSpeed, deltaTime); // 아이템 조작
+    itemController.update(stage.stage, gameSpeed, deltaTime); // 아이템 조작
     player.update(gameSpeed, deltaTime); // 플레이어
     updateGameSpeed(deltaTime); // 게임 속도 가속
     stage.update(deltaTime); // 스테이지 시간에 따라 증가
+    // 별 먹은 상태라면 타이머 on, 5초 목표로 300 했는데 2초만에 끝나서 600
+    if (isStar) {
+      starTimer += 1;
+      if (starTimer >= 600) {
+        starTimer = 0;
+        isStar = false;
+      }
+    }
   }
   // (4 b) (수정 예정) 게임 진행 중 선인장과 충돌했다면 게임 오버
-  if (!gameover && !stage.isClear && cactiController.collideWith(player)) {
+  if (!isStar && !gameover && !stage.isClear && cactiController.collideWith(player)) {
     gameover = true;
     score.setHighScore();
     setupGameReset();
@@ -236,9 +247,15 @@ function gameLoop(currentTime) {
   // 충돌한 아이템의 ID 가져와 점수 차등 적용
   if (collideWithItem && collideWithItem.itemId) {
     score.getItem(collideWithItem.itemId);
+    // 충돌한 게 별이면 특수 효과 ON
+    if (collideWithItem.itemId === 6) {
+      isStar = true;
+      starTimer = 0; // 별 상태일 때 별 먹으면 연장될 수 있도록!
+    }
   }
+
   // (4 d) 스테이지 5에서 50초 버텼을 시 게임 클리어
-  if (!gameover && !stage.isClear && stage.stage === 5 && stage.time >= stage.stage * 1) {
+  if (!gameover && !stage.isClear && stage.stage === 5 && stage.time >= stage.stage * 5) {
     stage.gameClear();
     score.setHighScore();
     setupGameReset();
