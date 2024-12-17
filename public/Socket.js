@@ -12,6 +12,7 @@ let userId = null;
 let stageTable = null;
 let itemTable = null;
 let unlockTable = null;
+let res = null;
 
 /* 서버에서 "connection" 메세지를 받았을 때 실행할 로직 */
 socket.on("connection", (data) => {
@@ -20,11 +21,7 @@ socket.on("connection", (data) => {
   stageTable = data.assets.stages;
   itemTable = data.assets.items;
   unlockTable = data.assets.itemUnlocks;
-});
-
-/* 서버에서 "response" 메세지를 받았을 때 실행할 로직 */
-socket.on("response", (data) => {
-  console.log("response : ", data);
+  res = null;
 });
 
 /* 클라이언트에서 서버로 이벤트 보내기 위한 함수 */
@@ -40,4 +37,12 @@ const sendEvent = (handlerId, payload) => {
   });
 };
 
-export { sendEvent, stageTable, itemTable, unlockTable };
+// [3] 서버에서 "response" 메세지를 받아 이를 res에 저장
+socket.on("response", (data) => {
+  if (data.handlerId === 21) {
+    res = data;
+  }
+  console.log("response : ", data);
+});
+
+export { sendEvent, res, stageTable, itemTable, unlockTable };

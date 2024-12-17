@@ -1,4 +1,5 @@
 import { getGameAssets } from "../init/assets.js";
+import { clearItems, setItems } from "../models/item-model.js";
 import { clearStage, getStage, setStage } from "../models/stage-model.js";
 
 /* 게임 시작!! */
@@ -8,6 +9,7 @@ export const gameStart = (uuid, payload) => {
   const { stages } = getGameAssets();
   // [2] 사용자의 기존 스테이지 상태 초기화
   clearStage(uuid);
+  clearItems(uuid);
   // [3] 새 게임의 첫 스테이지 설정
   // ?? 이거 조정하면 이어하기도 가능하겠는데....??
   setStage(uuid, stages.data[0].id, payload.timestamp);
@@ -15,7 +17,7 @@ export const gameStart = (uuid, payload) => {
   // 첫 스테이지 정보만 있는 게 맞는지, 초기화 잘 됐는지 확인 위함
   console.log(`Stage : `, getStage(uuid));
   // [5] 클라이언트에게 성공 응답 반환
-  return { status: "success" };
+  return { status: "success", message: "게임이 시작됐수!!!" };
 };
 
 /* 게임 종료!! */

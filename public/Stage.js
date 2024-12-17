@@ -38,7 +38,6 @@ class Stage {
     this.stage = 1;
     this.time = 0;
     this.isClear = false;
-    console.log("잘 가져왔는감? ", stageTable.data);
   }
 
   getStage() {

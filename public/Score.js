@@ -1,4 +1,4 @@
-import { sendEvent, itemTable } from "./Socket.js";
+import { sendEvent, res, itemTable } from "./Socket.js";
 
 class Score {
   score = 0;
@@ -12,8 +12,12 @@ class Score {
   }
 
   // 어떤 아이템을 먹었을지 판단하려면 itemId로 구분
-  getItem(itemId) {
-    this.score += itemTable.data[itemId - 1].score; // 데이터 테이블 획득 점수 참조
+  getItem(itemId, stage, timestamp) {
+    const points = itemTable.data[itemId - 1].score;
+    sendEvent(21, { itemId, stage, score: points, timestamp });
+    console.log("됐냐?!?1/!? : ", res);
+
+    this.score += points; // 데이터 테이블 획득 점수 참조
   }
 
   reset() {

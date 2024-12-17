@@ -1,4 +1,5 @@
 import Item from "./Item.js";
+import { itemTable } from "./Socket.js";
 
 class ItemController {
   nextInterval = null;
@@ -25,7 +26,7 @@ class ItemController {
 
   // 랜덤이 아니라 스테이지 고정으로 나오게
   createItem(stage) {
-    const itemInfo = this.itemImages[stage - 1];
+    const itemInfo = this.itemImages[itemTable.data[stage - 1].id - 1];
     const maxHeight = Math.floor(itemInfo.height / 1.5);
     const minHeight = Math.floor((this.canvas.height - itemInfo.height) / 1.5);
     const x = this.canvas.width * 1.5;
