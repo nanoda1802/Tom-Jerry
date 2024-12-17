@@ -1,11 +1,10 @@
-import { sendEvent } from "./Socket.js";
+import { sendEvent, stageTable } from "./Socket.js";
 
 class Stage {
   stage = 1;
   stageChange = true;
   time = 0;
   isClear = false;
-  currentStageId = { 1: 1000, 2: 1001, 3: 1002, 4: 1003, 5: 1004 };
   constructor(ctx, scaleRatio) {
     this.ctx = ctx;
     this.canvas = ctx.canvas;
@@ -15,21 +14,22 @@ class Stage {
   update(deltaTime) {
     this.stageChange = true;
     this.time += deltaTime * 0.001;
-    // 점수가 stage * 10점 이상이 될 시 서버에 메세지 전송
-    if (Math.floor(this.time) === this.stage * 5 && this.stageChange) {
+    // 플레이 시간이 설정된 스테이지 데이터 변경 시간이 되면 서버에 메세지 전송
+    if (Math.floor(this.time) === stageTable.data[this.stage - 1].total_time && this.stageChange) {
       if (this.stage === 5) {
         return;
       }
+      // 스테이지 이동 핸들러 실행 부분
+      sendEvent(11, { currentStage: stageTable.data[this.stage - 1].id, targetStage: stageTable.data[this.stage].id });
       this.stageChange = false;
       this.stage += 1;
       this.time = 0;
-      // 스테이지 이동 핸들러 실행 부분
-      sendEvent(11, { currentStage: this.currentStageId[this.stage - 1], targetStage: this.currentStageId[this.stage] });
     }
   }
 
   gameClear() {
-    if (this.stage === 5 && this.time >= this.stage * 5) {
+    // 여기도 sendEvent 해야겄네
+    if (this.stage === 5 && this.time >= stageTable.data[4].total_time) {
       this.isClear = true;
     }
   }
@@ -38,6 +38,7 @@ class Stage {
     this.stage = 1;
     this.time = 0;
     this.isClear = false;
+    console.log("잘 가져왔는감? ", stageTable.data);
   }
 
   getStage() {

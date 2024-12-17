@@ -5,14 +5,13 @@ import CactiController from "./CactiController.js";
 import Stage from "./Stage.js";
 import Score from "./Score.js";
 import ItemController from "./ItemController.js";
-import { sendEvent } from "./Socket.js";
+import { sendEvent, stageTable, itemTable, unlockTable } from "./Socket.js";
 import "./Socket.js";
 
 const canvas = document.getElementById("game"); // 게임 화면 담당할 HTML 요소 셀렉
 const ctx = canvas.getContext("2d"); // 그리기 작업 해줄 2D 렌더링 컨텍스트 가져옴
 // [1] 게임 전반 설정
 const GAME_SPEED_START = 1; // 게임 시작 시 기본 속도
-const GAME_SPEED_INCREMENT = 0.00001; // 진행 시 속도 증가량
 const GAME_WIDTH = 800; // 화면 너비
 const GAME_HEIGHT = 300; // 화면 높이
 
@@ -162,9 +161,8 @@ function showGameClear() {
   const y = canvas.height / 2;
   ctx.fillText("GAME CLEAR!!", x, y);
 }
-// [함수] 게임 진행에 따라 증가하는 속도 반영
-function updateGameSpeed(deltaTime) {
-  gameSpeed += deltaTime * GAME_SPEED_INCREMENT;
+function updateGameSpeed(stage) {
+  gameSpeed = stageTable.data[stage - 1].speed;
 }
 // [함수] 게임 재시작
 function reset() {
@@ -222,7 +220,7 @@ function gameLoop(currentTime) {
     cactiController.update(gameSpeed, deltaTime); // 선인장 조작
     itemController.update(stage.stage, gameSpeed, deltaTime); // 아이템 조작
     player.update(gameSpeed, deltaTime); // 플레이어
-    updateGameSpeed(deltaTime); // 게임 속도 가속
+    updateGameSpeed(stage.stage); // 스테이지별 게임 속도 가속
     stage.update(deltaTime); // 스테이지 시간에 따라 증가
     // 별 먹은 상태라면 타이머 on, 5초 목표로 300 했는데 2초만에 끝나서 600
     if (player.isStar) {
