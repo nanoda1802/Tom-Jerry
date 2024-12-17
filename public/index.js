@@ -231,6 +231,7 @@ function gameLoop(currentTime) {
       }
     }
   }
+
   // (4 b) (수정 예정) 게임 진행 중 선인장과 충돌했다면 게임 오버
   if (!player.isStar && !gameover && !stage.isClear && cactiController.collideWith(player)) {
     gameover = true;
@@ -239,11 +240,12 @@ function gameLoop(currentTime) {
     // 서버에게 이벤트 처리 요청, gameEnd 핸들러가 담당
     sendEvent(3, { timestamp: Date.now(), score: score.score });
   }
+
   // (4 c) 게임 진행 중 아이템과 충돌했다면 점수 업
   const collideWithItem = itemController.collideWith(player); //
   // 충돌한 아이템의 ID 가져와 점수 차등 적용
   if (collideWithItem && collideWithItem.itemId) {
-    score.getItem(collideWithItem.itemId);
+    score.getItem(collideWithItem.itemId, stage.stage, Date.now());
     // 충돌한 게 별이면 특수 효과 ON
     if (collideWithItem.itemId === 6) {
       player.isStar = true;
