@@ -1,4 +1,4 @@
-import { sendEvent } from "./Socket.js";
+import { sendEvent, itemTable } from "./Socket.js";
 
 class Score {
   score = 0;
@@ -12,14 +12,8 @@ class Score {
   }
 
   // 어떤 아이템을 먹었을지 판단하려면 itemId로 구분
-  // 상수 말고 데이터테이블에서 가져오도록 해야할 거 같은데
   getItem(itemId) {
-    // itemId에 따라 조건문 분기 나누기
-    if (itemId < 6) {
-      this.score += 10 * itemId; // 몇 점 줄 건지는 여기서 결정
-    } else {
-      this.score += 150; // 별이면 고정 점수
-    }
+    this.score += itemTable.data[itemId - 1].score; // 데이터 테이블 획득 점수 참조
   }
 
   reset() {

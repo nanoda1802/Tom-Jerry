@@ -9,11 +9,17 @@ const socket = io("http://localhost:3000", {
 
 /* 클라이언트의 고유 ID 저장할 변수 생성 */
 let userId = null;
+let stageTable = null;
+let itemTable = null;
+let unlockTable = null;
 
 /* 서버에서 "connection" 메세지를 받았을 때 실행할 로직 */
 socket.on("connection", (data) => {
   console.log("connection: ", data); // [1] 서버에서 받은 데이터 출력
   userId = data.uuid; // [2] 서버가 만들어준 uuid를 유저 ID에 저장
+  stageTable = data.assets.stages;
+  itemTable = data.assets.items;
+  unlockTable = data.assets.itemUnlocks;
 });
 
 /* 서버에서 "response" 메세지를 받았을 때 실행할 로직 */
@@ -34,4 +40,4 @@ const sendEvent = (handlerId, payload) => {
   });
 };
 
-export { sendEvent };
+export { sendEvent, stageTable, itemTable, unlockTable };

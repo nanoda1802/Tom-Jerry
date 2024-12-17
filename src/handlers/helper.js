@@ -14,13 +14,14 @@ export const handleDisconnect = (socket, uuid) => {
 };
 /* 신규 연결 사용자 처리 */
 export const handleConnection = (socket, uuid) => {
-  // [1] 연결된 사용자에게 맞는 스테이지 생성해줌
+  // [1] 연결된 사용자에게 맞는 스테이지 생성, 전달할 데이터 테이블 get
+  const assets = getGameAssets();
   createStage(uuid);
   // [2] 연결된 사용자의 UUID와 SocketID, 접속 중인 전체 사용자 목록 출력
   console.log(`New User connected : ${uuid} with socket ID ${socket.id}`);
   console.log(`Current users : `, getUser());
-  // [3] 연결된 사용자에게 부여된 UUID 알려줌
-  socket.emit("connection", { uuid });
+  // [3] 연결된 사용자에게 부여된 UUID 알려주고, 데이터 테이블 전달
+  socket.emit("connection", { uuid, assets });
 };
 /* 이벤트 처리 */
 // 클라이언트에게 받은 이벤트를 처리하고, 적절한 응답을 특정 클라나 모든 클라에게 전송
