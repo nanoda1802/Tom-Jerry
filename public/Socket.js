@@ -11,6 +11,7 @@ const socket = io("http://localhost:3000", {
 let userId = null;
 let stageTable = null;
 let itemTable = null;
+let highScore = null;
 
 /* 서버에서 "connection" 메세지를 받았을 때 실행할 로직 */
 socket.on("connection", (data) => {
@@ -18,6 +19,7 @@ socket.on("connection", (data) => {
   userId = data.uuid; // [2] 서버가 만들어준 uuid를 유저 ID에 저장
   stageTable = data.assets.stages;
   itemTable = data.assets.items;
+  highScore = data.highScore;
 });
 
 // 서버에서 "response" 메세지를 받아 이를 res에 저장
@@ -57,4 +59,4 @@ const sendEvent = (handlerId, payload) => {
   });
 };
 
-export { sendEvent, stageTable, itemTable };
+export { sendEvent, stageTable, itemTable, highScore };
