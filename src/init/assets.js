@@ -41,13 +41,12 @@ const readFileAsync = (fileName) => {
 export const loadGameAssets = async () => {
   try {
     // [1] 병렬적으로 파일 열람 후 각각 배열 구조분해할당
-    const [stages, items, itemUnlocks] = await Promise.all([
+    const [stages, items] = await Promise.all([
       readFileAsync("stage.json"),
       readFileAsync("item.json"),
-      readFileAsync("item_unlock.json"),
     ]);
     // [2] 재료 데이터 저장하는 객체에 불러온 JSON 객체들 저장
-    gameAssets = { stages, items, itemUnlocks };
+    gameAssets = { stages, items };
     // [3 a] 객체 통째로 반환
     return gameAssets;
   } catch (err) {

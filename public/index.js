@@ -5,7 +5,7 @@ import CactiController from "./CactiController.js";
 import Stage from "./Stage.js";
 import Score from "./Score.js";
 import ItemController from "./ItemController.js";
-import { sendEvent, stageTable, itemTable, unlockTable } from "./Socket.js";
+import { sendEvent, stageTable, itemTable } from "./Socket.js";
 import "./Socket.js";
 
 const canvas = document.getElementById("game"); // 게임 화면 담당할 HTML 요소 셀렉
@@ -238,7 +238,7 @@ function gameLoop(currentTime) {
     score.setHighScore();
     setupGameReset();
     // 서버에게 이벤트 처리 요청, gameEnd 핸들러가 담당
-    sendEvent(3, { timestamp: Date.now(), score: score.score });
+    sendEvent(3, { timestamp: Date.now(), score: score.score, clear: false });
   }
 
   // (4 c) 게임 진행 중 아이템과 충돌했다면 점수 업
@@ -253,13 +253,13 @@ function gameLoop(currentTime) {
     }
   }
 
-  // (4 d) 스테이지 5에서 50초 버텼을 시 게임 클리어
+  // (4 d) 스테이지 5에서 25초 버텼을 시 게임 클리어
   if (!gameover && !stage.isClear && stage.stage === 5 && stage.time >= stage.stage * 5) {
     stage.gameClear();
     score.setHighScore();
     setupGameReset();
     // 서버에게 이벤트 처리 요청, gameEnd 핸들러가 담당
-    sendEvent(3, { timestamp: Date.now(), score: score.score });
+    sendEvent(3, { timestamp: Date.now(), score: score.score, clear: true });
   }
   // (5) 요소들 화면에 그리기
   ground.draw();

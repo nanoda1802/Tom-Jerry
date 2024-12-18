@@ -15,7 +15,7 @@ class Stage {
     this.stageChange = true;
     this.time += deltaTime * 0.001;
     // 플레이 시간이 설정된 스테이지 데이터 변경 시간이 되면 서버에 메세지 전송
-    if (Math.floor(this.time) === stageTable.data[this.stage - 1].total_time && this.stageChange) {
+    if (Math.floor(this.time) === stageTable.data[this.stage - 1].duration && this.stageChange) {
       if (this.stage === 5) {
         return;
       }
@@ -28,8 +28,7 @@ class Stage {
   }
 
   gameClear() {
-    // 여기도 sendEvent 해야겄네
-    if (this.stage === 5 && this.time >= stageTable.data[4].total_time) {
+    if (this.stage === 5 && this.time >= stageTable.data[4].duration) {
       this.isClear = true;
     }
   }

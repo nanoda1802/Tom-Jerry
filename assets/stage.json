@@ -4,27 +4,27 @@
   "data": [
     {
       "id": 1000,
-      "total_time": 5,
+      "duration": 5,
       "speed": 1
     },
     {
       "id": 1001,
-      "total_time": 10,
+      "duration": 10,
       "speed": 1.2
     },
     {
       "id": 1002,
-      "total_time": 15,
+      "duration": 15,
       "speed": 1.4
     },
     {
       "id": 1003,
-      "total_time": 20,
+      "duration": 20,
       "speed": 1.6
     },
     {
       "id": 1004,
-      "total_time": 25,
+      "duration": 25,
       "speed": 1.8
     }
   ]
