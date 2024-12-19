@@ -1,7 +1,7 @@
 import { CLIENT_VERSION } from "./Constants.js";
 
 /* 소켓 연결 초기화 */
-const socket = io("http://localhost:3000", {
+const socket = io("http://3.37.128.71:3001", {
   query: {
     clientVersion: CLIENT_VERSION,
     userId: localStorage.getItem("myUUID"),
