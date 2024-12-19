@@ -165,7 +165,7 @@ function updateGameSpeed(stage) {
   gameSpeed = stageTable.data[stage - 1].speed;
 }
 // [함수] 게임 재시작
-function reset() {
+async function reset() {
   // (1) 변수 초기화
   hasAddedEventListenersForRestart = false;
   gameover = false;
@@ -178,7 +178,12 @@ function reset() {
   gameSpeed = GAME_SPEED_START;
   // (2) 서버에 게임 시작 요청
   // game-handler.js 파일의 gameStart 핸들러가 담당해 처리
-  sendEvent(2, { timestamp: Date.now() }); // 매핑번호 : 2, 페이로드 : 시작시간
+  await sendEvent(2, { timestamp: Date.now() }).then((data) => {
+    if (data.handlerId === 2) {
+      score.highScore = data.currentHigh;
+      console.log(data);
+    }
+  });
 }
 // [함수] 유저가 재시작을 희망하는지 확인 (키보드를 눌렀는지 체크하고, 게임을 리센)
 function setupGameReset() {

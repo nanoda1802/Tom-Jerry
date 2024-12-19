@@ -1,8 +1,9 @@
-import { sendEvent, itemTable, highScore } from "./Socket.js";
+import { sendEvent, itemTable } from "./Socket.js";
 
 class Score {
   score = 0;
   stageChange = true;
+  highScore = 0;
 
   constructor(ctx, scaleRatio) {
     this.ctx = ctx;
@@ -40,7 +41,7 @@ class Score {
     const highScoreX = scoreX - 125 * this.scaleRatio;
 
     const scorePadded = Math.floor(this.score).toString().padStart(6, 0);
-    const highScorePadded = `${highScore}`.padStart(6, 0);
+    const highScorePadded = `${this.highScore}`.padStart(6, 0);
 
     this.ctx.fillText(scorePadded, scoreX, y);
     this.ctx.fillText(`HI ${highScorePadded}`, highScoreX, y);

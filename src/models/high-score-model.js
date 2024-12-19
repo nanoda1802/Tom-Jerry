@@ -2,7 +2,7 @@
 const highScore = { uuid: "", high: 0 };
 
 export const getHigh = () => {
-  return highScore.high;
+  return highScore;
 };
 
 export const setHigh = (userId, score) => {

@@ -4,22 +4,25 @@ import { CLIENT_VERSION } from "./Constants.js";
 const socket = io("http://localhost:3000", {
   query: {
     clientVersion: CLIENT_VERSION,
+    userId: localStorage.getItem("myUUID"),
   },
 });
 
-/* 클라이언트의 고유 ID 저장할 변수 생성 */
+/* 클라이언트 필요 정보 저장할 변수 생성 */
 let userId = null;
 let stageTable = null;
 let itemTable = null;
-let highScore = null;
 
 /* 서버에서 "connection" 메세지를 받았을 때  */
 socket.on("connection", (data) => {
-  console.log("connection: ", data); // [1] 서버에서 받은 데이터 출력
-  userId = data.uuid; // [2] 서버가 만들어준 uuid를 유저 ID에 저장
+  // [1] 서버에서 받은 데이터 출력
+  console.log("connection: ", data);
+  // [2] 서버에서 받은 정보들 변수에 할당
+  userId = data.uuid;
   stageTable = data.assets.stages;
   itemTable = data.assets.items;
-  highScore = data.highScore;
+  // [3] localStorage의 uuid 최신화
+  localStorage.setItem("myUUID", userId);
 });
 
 /* 서버에서 "response" 메세지를 받았을 때 */
@@ -38,7 +41,7 @@ const sendEvent = (handlerId, payload) => {
       handlerId,
       payload,
     });
-    // 해당 메세지에 대한 응답 바로 받는 일회성 소켓
+    // [2] 해당 메세지에 대한 응답 바로 받는 일회성 소켓
     socket.once("response", (data) => {
       if (data.handlerId === handlerId) {
         resolve(data);
@@ -49,4 +52,4 @@ const sendEvent = (handlerId, payload) => {
   });
 };
 
-export { sendEvent, stageTable, itemTable, highScore };
+export { sendEvent, stageTable, itemTable };
