@@ -1,5 +1,6 @@
 import { CLIENT_VERSION } from "../constants.js";
 import { getGameAssets } from "../init/assets.js";
+import { getHigh } from "../models/high-score-model.js";
 import { createItems } from "../models/item-model.js";
 import { createStage, getStage, setStage } from "../models/stage-model.js";
 import { getUser, removeUser } from "../models/user-model.js";
@@ -18,13 +19,14 @@ export const handleDisconnect = (socket, uuid) => {
 export const handleConnection = (socket, uuid) => {
   // [1] 연결된 사용자의 스테이지와 아이템 정보 생성, 전달할 데이터 테이블 get
   const assets = getGameAssets();
+  const highScore = getHigh();
   createStage(uuid);
   createItems(uuid);
   // [2] 연결된 사용자의 UUID와 SocketID, 접속 중인 전체 사용자 목록 출력
   console.log(`New User connected : ${uuid} with socket ID ${socket.id}`);
   console.log(`Current users : `, getUser());
   // [3] 연결된 사용자에게 부여된 UUID 알려주고, 데이터 테이블 전달
-  socket.emit("connection", { uuid, assets });
+  socket.emit("connection", { uuid, assets, highScore });
 };
 
 /* 이벤트 처리 */
@@ -45,14 +47,12 @@ export const handleEvent = (io, socket, data) => {
   // [3] 핸들러 실행 및 응답
   // 전담 직원이 처리 결과를 손님에게 알려주는 느낌
   const response = handler(data.userId, data.payload);
-  // [3-1] 브로드캐스트 응답
+  // [3-1] 클라이언트에 이벤트 처리 결과 응답
   // 응답에 broadcast 속성이 있다면, 모든 클라이언트에게 응답을 전달
-  // 없는데 왜 자꾸 찾어!!!!
-  // if (response.broadcast) {
-  //   io.emit("response", "broadcast");
-  //   return;
-  // }
-  // [3-2] 특정 사용자에게만 응답
-  // 요청한 손님에게만 응답을 전달
-  socket.emit("response", { ...response, handlerId: data.handlerId });
+  if (!response.broadcast) {
+    socket.emit("response", { ...response, handlerId: data.handlerId });
+  } else {
+    io.emit("response", { ...response, handlerId: data.handlerId });
+    return;
+  }
 };

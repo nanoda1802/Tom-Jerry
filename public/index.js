@@ -235,7 +235,6 @@ function gameLoop(currentTime) {
   // (4 b) (수정 예정) 게임 진행 중 선인장과 충돌했다면 게임 오버
   if (!player.isStar && !gameover && !stage.isClear && cactiController.collideWith(player)) {
     gameover = true;
-    score.setHighScore();
     setupGameReset();
     // 서버에게 이벤트 처리 요청, gameEnd 핸들러가 담당
     sendEvent(3, { timestamp: Date.now(), score: score.score, clear: false });
@@ -256,7 +255,6 @@ function gameLoop(currentTime) {
   // (4 d) 스테이지 5에서 25초 버텼을 시 게임 클리어
   if (!gameover && !stage.isClear && stage.stage === 5 && stage.time >= stage.stage * 5) {
     stage.gameClear();
-    score.setHighScore();
     setupGameReset();
     // 서버에게 이벤트 처리 요청, gameEnd 핸들러가 담당
     sendEvent(3, { timestamp: Date.now(), score: score.score, clear: true });

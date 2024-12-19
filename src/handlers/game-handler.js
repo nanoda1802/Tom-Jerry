@@ -1,6 +1,7 @@
 import { getGameAssets } from "../init/assets.js";
 import { clearItems, getItems, setItems } from "../models/item-model.js";
 import { clearStage, getStage, setStage } from "../models/stage-model.js";
+import { getHigh, setHigh } from "../models/high-score-model.js";
 
 /* 게임 시작!! */
 // 사용자의 스테이지 상태 초기화 및 첫 스테이지 설정
@@ -54,7 +55,6 @@ export const gameEnd = (uuid, payload) => {
   // 3. 클리어일 시 플레이 시간이 총 시간과 비교해서 적절한지
   // 스테이지 테이블에서 스테이지 유지시간들 더해서 총 시간 구함 <- 이거 75초임
   // stages의 첫 timestamp와 페이로드의 timestamp의 차를 구한 후 총 시간과 비교해 검증
-  // 이건 저기 4-2에 있는 듯?
   const playTime = myEndTime - myStages[0].timestamp;
   const totalDuration = stageTable.reduce((total, each) => {
     return total + each.duration;
@@ -63,6 +63,11 @@ export const gameEnd = (uuid, payload) => {
     return { status: "fail", message: "이렇게 빨리 깰 리가 없어요?" };
   }
   // 하이스코어 갱신을 여기서 해줘야하는가봉가봉가?
+  const highScore = getHigh();
+  if (myScore > highScore) {
+    setHigh(uuid, myScore);
+    return { status: "success", broadcast: `${myScore} 점으로 최고기록이 갱신됐어요!!`, message: "게임이 종료됐수!!" };
+  }
   // [6] 점수 검증 성공 응답
-  return { status: "success", message: "게임 종료!!", myScore };
+  return { status: "success", message: "게임이 종료됐수!!", myScore };
 };

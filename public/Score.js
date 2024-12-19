@@ -1,8 +1,7 @@
-import { sendEvent, itemTable } from "./Socket.js";
+import { sendEvent, itemTable, highScore } from "./Socket.js";
 
 class Score {
   score = 0;
-  HIGH_SCORE_KEY = "highScore";
   stageChange = true;
 
   constructor(ctx, scaleRatio) {
@@ -26,19 +25,11 @@ class Score {
     this.score = 0;
   }
 
-  setHighScore() {
-    const highScore = Number(localStorage.getItem(this.HIGH_SCORE_KEY));
-    if (this.score > highScore) {
-      localStorage.setItem(this.HIGH_SCORE_KEY, Math.floor(this.score));
-    }
-  }
-
   getScore() {
     return this.score;
   }
 
   draw() {
-    const highScore = Number(localStorage.getItem(this.HIGH_SCORE_KEY));
     const y = 20 * this.scaleRatio;
 
     const fontSize = 20 * this.scaleRatio;
@@ -49,7 +40,7 @@ class Score {
     const highScoreX = scoreX - 125 * this.scaleRatio;
 
     const scorePadded = Math.floor(this.score).toString().padStart(6, 0);
-    const highScorePadded = highScore.toString().padStart(6, 0);
+    const highScorePadded = `${highScore}`.padStart(6, 0);
 
     this.ctx.fillText(scorePadded, scoreX, y);
     this.ctx.fillText(`HI ${highScorePadded}`, highScoreX, y);
