@@ -55,7 +55,6 @@ export const gameEnd = (uuid, payload) => {
   // 3. 클리어일 시 플레이 시간이 총 시간과 비교해서 적절한지
   // 스테이지 테이블에서 스테이지 유지시간들 더해서 총 시간 구함 <- 이거 75초임
   // stages의 첫 timestamp와 페이로드의 timestamp의 차를 구한 후 총 시간과 비교해 검증
-  // 이건 저기 4-2에 있는 듯?
   const playTime = myEndTime - myStages[0].timestamp;
   const totalDuration = stageTable.reduce((total, each) => {
     return total + each.duration;
