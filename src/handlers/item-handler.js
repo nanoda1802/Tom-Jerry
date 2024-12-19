@@ -18,16 +18,18 @@ export const itemHandler = (userId, payload) => {
   // [4] 획득 주기가 적합한지 검증 (두번째 획득부터 검사!!) (프레임 차이 고려해서 오차 0.3초 정도)
   const itemInterval = itemTable[itemId - 1].interval;
   const starId = 6;
-  if (serverItems[0] && itemId !== starId) {
-    const serverCoins = getCoins(userId); // 코인 검증 위한 정보 가져옴
+  const serverCoins = getCoins(userId); // 코인 검증 위한 서버 기록 가져옴
+  const serverStars = getStars(userId); // 별 검증 위한 서버 기록 가져옴
+  // [4-1] 코인 획득 주기
+  if (serverCoins.length > 0 && itemId !== starId) {
     const coinGap = clientGetTime - serverCoins[serverCoins.length - 1].timestamp;
-    if (serverCoins[0] && coinGap < itemInterval - 300) {
+    if (coinGap < itemInterval - 300) {
       return { status: "fail", message: "코인을 너무 자주 먹는데요?!" };
     }
-  } else if (serverItems[0] && itemId === starId) {
-    const serverStars = getStars(userId); // 별 검증 위한 정보 가져옴
+    // [4-2] 스타 획득 주기
+  } else if (serverStars.length > 0 && itemId === starId) {
     const starGap = clientGetTime - serverStars[serverStars.length - 1].timestamp;
-    if (serverStars[0] && starGap < itemInterval - 300) {
+    if (starGap < itemInterval - 300) {
       return { status: "fail", message: "별을 너무 자주 먹는데요?!" };
     }
   }

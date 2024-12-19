@@ -13,6 +13,7 @@ class Score {
 
   async getItem(itemId, stage, timestamp) {
     const points = itemTable.data[itemId - 1].score; // 데이터 테이블 획득 점수 참조
+    // 아이템 핸들러 호출
     await sendEvent(21, { itemId, stage, score: points, timestamp }).then((data) => {
       if (data.handlerId === 21 && data.status === "success") {
         this.score += points;

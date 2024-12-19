@@ -19,11 +19,9 @@ const registerHandler = (io) => {
     if (userUUID === bestGamer) {
       socket.emit("response", { message: "안녕하세요? 서버 최강의 유저!!" });
     }
-    /* 접속 중 이벤트 처리 */
-    // 클라이언트에게 "event"란 메세지를 받았을 때 서버가 처리할 로직
+    // [5] 클라이언트에게 "event"란 메세지를 받았을 때 서버가 처리할 로직
     socket.on("event", (data) => handleEvent(io, socket, data));
-    /* 사용자 연결 중단 처리 */
-    // 클라이언트에게 "disconnect"란 메세지를 받았을 때 서버가 처리할 로직
+    // [6] 클라이언트에게 "disconnect"란 메세지를 받았을 때 서버가 처리할 로직
     socket.on("disconnect", () => handleDisconnect(socket, userUUID));
   });
 };

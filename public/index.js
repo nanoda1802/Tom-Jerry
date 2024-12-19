@@ -225,7 +225,7 @@ function gameLoop(currentTime) {
     cactiController.update(gameSpeed, deltaTime); // 선인장 조작
     itemController.update(stage.stage, gameSpeed, deltaTime); // 아이템 조작
     player.update(gameSpeed, deltaTime); // 플레이어
-    updateGameSpeed(stage.stage); // 스테이지별 게임 속도 가속
+    updateGameSpeed(stage.stage); // 스테이지별 게임 속도 차등
     stage.update(deltaTime); // 스테이지 시간에 따라 증가
     // 별 먹은 상태라면 타이머 on, 5초 목표로 300 했는데 2초만에 끝나서 600
     if (player.isStar) {
@@ -237,7 +237,7 @@ function gameLoop(currentTime) {
     }
   }
 
-  // (4 b) (수정 예정) 게임 진행 중 선인장과 충돌했다면 게임 오버
+  // (4 b) 게임 진행 중 선인장과 충돌했다면 게임 오버
   if (!player.isStar && !gameover && !stage.isClear && cactiController.collideWith(player)) {
     gameover = true;
     setupGameReset();

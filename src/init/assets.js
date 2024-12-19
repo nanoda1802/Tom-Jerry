@@ -37,6 +37,7 @@ const readFileAsync = (fileName) => {
     });
   });
 };
+
 /* 게임 재료 파일들 불러오기 */
 export const loadGameAssets = async () => {
   try {
@@ -54,6 +55,7 @@ export const loadGameAssets = async () => {
     throw new Error("!! Failed to load game assets !! " + err.message);
   }
 };
+
 /* 재료 데이터 조회 및 재사용 */
 export const getGameAssets = () => {
   return gameAssets;
