@@ -4,27 +4,39 @@
   "data": [
     {
       "id": 1,
-      "score": 10
+      "score": 10,
+      "stage": 1,
+      "interval": 500
     },
     {
       "id": 2,
-      "score": 20
+      "score": 20,
+      "stage": 2,
+      "interval": 500
     },
     {
       "id": 3,
-      "score": 30
+      "score": 30,
+      "stage": 3,
+      "interval": 500
     },
     {
       "id": 4,
-      "score": 40
+      "score": 40,
+      "stage": 4,
+      "interval": 500
     },
     {
       "id": 5,
-      "score": 50
+      "score": 50,
+      "stage": 5,
+      "interval": 500
     },
     {
       "id": 6,
-      "score": 60
+      "score": 150,
+      "stage": 0,
+      "interval": 5000
     }
   ]
 }

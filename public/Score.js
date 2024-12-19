@@ -1,9 +1,9 @@
-import { sendEvent } from "./Socket.js";
+import { sendEvent, itemTable } from "./Socket.js";
 
 class Score {
   score = 0;
-  HIGH_SCORE_KEY = "highScore";
   stageChange = true;
+  highScore = 0;
 
   constructor(ctx, scaleRatio) {
     this.ctx = ctx;
@@ -11,31 +11,20 @@ class Score {
     this.scaleRatio = scaleRatio;
   }
 
-  update(deltaTime) {
-    this.score += deltaTime * 0.001;
-    // 점수가 10점 이상이 될 시 서버에 메세지 전송
-    if (Math.floor(this.score) === 10 && this.stageChange) {
-      this.stageChange = false;
-      // 스테이지 이동 핸들러 실행 부분
-      sendEvent(11, { currentStage: 1000, targetStage: 1001 });
-    }
-  }
-
-  // 어떤 아이템을 먹었을지 판단하려면 itemId로 구분
-  getItem(itemId) {
-    // itemId에 따라 조건문 분기 나누기
-    this.score += 0; // 몇 점 줄 건지는 여기서 결정
+  async getItem(itemId, stage, timestamp) {
+    const points = itemTable.data[itemId - 1].score; // 데이터 테이블 획득 점수 참조
+    // 아이템 핸들러 호출
+    await sendEvent(21, { itemId, stage, score: points, timestamp }).then((data) => {
+      if (data.handlerId === 21 && data.status === "success") {
+        this.score += points;
+      } else {
+        console.log("점수 검증에 실패했수!!");
+      }
+    });
   }
 
   reset() {
     this.score = 0;
-  }
-
-  setHighScore() {
-    const highScore = Number(localStorage.getItem(this.HIGH_SCORE_KEY));
-    if (this.score > highScore) {
-      localStorage.setItem(this.HIGH_SCORE_KEY, Math.floor(this.score));
-    }
   }
 
   getScore() {
@@ -43,7 +32,6 @@ class Score {
   }
 
   draw() {
-    const highScore = Number(localStorage.getItem(this.HIGH_SCORE_KEY));
     const y = 20 * this.scaleRatio;
 
     const fontSize = 20 * this.scaleRatio;
@@ -54,7 +42,7 @@ class Score {
     const highScoreX = scoreX - 125 * this.scaleRatio;
 
     const scorePadded = Math.floor(this.score).toString().padStart(6, 0);
-    const highScorePadded = highScore.toString().padStart(6, 0);
+    const highScorePadded = `${this.highScore}`.padStart(6, 0);
 
     this.ctx.fillText(scorePadded, scoreX, y);
     this.ctx.fillText(`HI ${highScorePadded}`, highScoreX, y);

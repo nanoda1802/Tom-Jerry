@@ -1,18 +1,19 @@
 import Player from "./Player.js";
+import Boss from "./Boss.js";
 import Ground from "./Ground.js";
 import CactiController from "./CactiController.js";
+import Stage from "./Stage.js";
 import Score from "./Score.js";
 import ItemController from "./ItemController.js";
-import { sendEvent } from "./Socket.js";
+import { sendEvent, stageTable, itemTable } from "./Socket.js";
 import "./Socket.js";
 
 const canvas = document.getElementById("game"); // 게임 화면 담당할 HTML 요소 셀렉
 const ctx = canvas.getContext("2d"); // 그리기 작업 해줄 2D 렌더링 컨텍스트 가져옴
 // [1] 게임 전반 설정
 const GAME_SPEED_START = 1; // 게임 시작 시 기본 속도
-const GAME_SPEED_INCREMENT = 0.00001; // 진행 시 속도 증가량
 const GAME_WIDTH = 800; // 화면 너비
-const GAME_HEIGHT = 200; // 화면 높이
+const GAME_HEIGHT = 300; // 화면 높이
 
 // [2] 플레이어 설정
 // 800 * 200 사이즈의 캔버스에서는 이미지의 기본크기가 크기때문에 1.5로 나눈 값을 사용. (비율 유지)
@@ -24,27 +25,33 @@ const MIN_JUMP_HEIGHT = 150; // 최소 점프 높이
 // [3] 오브젝트 설정
 // [3-1] 바닥
 const GROUND_WIDTH = 2400; // 바닥 너비
-const GROUND_HEIGHT = 24; // 바닥 높이
+const GROUND_HEIGHT = GAME_HEIGHT; // 바닥 높이
 const GROUND_SPEED = 0.5; // 바닥 기본 속도
 // [3-2] 선인장, 세 종류 각각의 너비 & 높이 & 이미지파일
 const CACTI_CONFIG = [
-  { width: 48 / 1.5, height: 100 / 1.5, image: "images/cactus_1.png" },
-  { width: 98 / 1.5, height: 100 / 1.5, image: "images/cactus_2.png" },
-  { width: 68 / 1.5, height: 70 / 1.5, image: "images/cactus_3.png" },
+  { width: 90 / 1.5, height: 90 / 1.5, image: "images/jerry_standing.png" },
+  { width: 90 / 1.5, height: 90 / 1.5, image: "images/jerry_jump.png" },
 ];
 // [3-3] 아이템, 네 종류 각각의너비 & 높이 & 아이디 & 이미지파일
 const ITEM_CONFIG = [
-  { width: 50 / 1.5, height: 50 / 1.5, id: 1, image: "images/items/pokeball_red.png" },
-  { width: 50 / 1.5, height: 50 / 1.5, id: 2, image: "images/items/pokeball_yellow.png" },
-  { width: 50 / 1.5, height: 50 / 1.5, id: 3, image: "images/items/pokeball_purple.png" },
-  { width: 50 / 1.5, height: 50 / 1.5, id: 4, image: "images/items/pokeball_cyan.png" },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 1, image: "images/items/coin1.png" },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 2, image: "images/items/coin2.png" },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 3, image: "images/items/coin3.png" },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 4, image: "images/items/coin4.png" },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 5, image: "images/items/coin5.png" },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 6, image: "images/items/star.png" },
 ];
+// [3-4] 보스
+const BOSS_WIDTH = 280; // 보스 너비
+const BOSS_HEIGHT = 210; // 보스 높이
 
 // [4] 게임 요소 초기화
 let player = null;
+let boss = null;
 let ground = null;
 let cactiController = null;
 let itemController = null;
+let stage = null;
 let score = null;
 let scaleRatio = null;
 let previousTime = null;
@@ -52,6 +59,7 @@ let gameSpeed = GAME_SPEED_START;
 let gameover = false;
 let hasAddedEventListenersForRestart = false;
 let waitingToStart = true;
+let starTimer = 0;
 
 // [함수] 게임 요소들 생성
 function createSprites() {
@@ -60,14 +68,17 @@ function createSprites() {
   const playerHeightInGame = PLAYER_HEIGHT * scaleRatio;
   const minJumpHeightInGame = MIN_JUMP_HEIGHT * scaleRatio;
   const maxJumpHeightInGame = MAX_JUMP_HEIGHT * scaleRatio;
-  // (2) 바닥 설정 화면비율에 맞게 조정
+  // (2) 바닥 및 보스 설정 화면비율에 맞게 조정
   const groundWidthInGame = GROUND_WIDTH * scaleRatio;
   const groundHeightInGame = GROUND_HEIGHT * scaleRatio;
+  const bossWidthInGame = BOSS_WIDTH * scaleRatio;
+  const bossHeightInGame = BOSS_HEIGHT * scaleRatio;
   // (3) 조정된 설정 바탕으로 게임 요소들 인스턴스 생성
   // (3-1) 플레이어 인스턴스
   player = new Player(ctx, playerWidthInGame, playerHeightInGame, minJumpHeightInGame, maxJumpHeightInGame, scaleRatio);
-  // (3-2) 지면 인스턴스
+  // (3-2) 지면 및 보스 인스턴스
   ground = new Ground(ctx, groundWidthInGame, groundHeightInGame, GROUND_SPEED, scaleRatio);
+  boss = new Boss(ctx, bossWidthInGame, bossHeightInGame, scaleRatio);
   // (3-3) 선인장 인스턴스
   const cactiImages = CACTI_CONFIG.map((cactus) => {
     const image = new Image();
@@ -93,15 +104,14 @@ function createSprites() {
   });
   // (3-6) 아이템 조작 인스턴스
   itemController = new ItemController(ctx, itemImages, scaleRatio, GROUND_SPEED);
-  // (3-7) 점수 인스턴스
+  // (3-7) 점수 및 스테이지 인스턴스
   score = new Score(ctx, scaleRatio);
+  stage = new Stage(ctx, scaleRatio);
 }
 // [함수] 게임 화면 비율 조정
 function getScaleRatio() {
   const screenHeight = Math.min(window.innerHeight, document.documentElement.clientHeight);
   const screenWidth = Math.min(window.innerHeight, document.documentElement.clientWidth);
-
-  // window is wider than the game width
   if (screenWidth / screenHeight < GAME_WIDTH / GAME_HEIGHT) {
     return screenWidth / GAME_WIDTH;
   } else {
@@ -123,11 +133,12 @@ window.addEventListener("resize", setScreen);
 if (screen.orientation) {
   screen.orientation.addEventListener("change", setScreen);
 }
+
 // [함수] 게임오버 텍스트 화면에 그림
 function showGameOver() {
   const fontSize = 70 * scaleRatio;
   ctx.font = `${fontSize}px Verdana`;
-  ctx.fillStyle = "grey";
+  ctx.fillStyle = "red";
   const x = canvas.width / 4.5;
   const y = canvas.height / 2;
   ctx.fillText("GAME OVER", x, y);
@@ -141,23 +152,38 @@ function showStartGameText() {
   const y = canvas.height / 2;
   ctx.fillText("Tap Screen or Press Space To Start", x, y);
 }
-// [함수] 게임 진행에 따라 증가하는 속도 반영
-function updateGameSpeed(deltaTime) {
-  gameSpeed += deltaTime * GAME_SPEED_INCREMENT;
+// [함수] 게임클리어 텍스트 화면에 그림
+function showGameClear() {
+  const fontSize = 70 * scaleRatio;
+  ctx.font = `${fontSize}px Verdana`;
+  ctx.fillStyle = "blue";
+  const x = canvas.width / 4.5;
+  const y = canvas.height / 2;
+  ctx.fillText("GAME CLEAR!!", x, y);
+}
+function updateGameSpeed(stage) {
+  gameSpeed = stageTable.data[stage - 1].speed;
 }
 // [함수] 게임 재시작
-function reset() {
+async function reset() {
   // (1) 변수 초기화
   hasAddedEventListenersForRestart = false;
   gameover = false;
   waitingToStart = false;
   ground.reset();
   cactiController.reset();
+  itemController.reset();
   score.reset();
+  stage.reset();
   gameSpeed = GAME_SPEED_START;
   // (2) 서버에 게임 시작 요청
   // game-handler.js 파일의 gameStart 핸들러가 담당해 처리
-  sendEvent(2, { timestamp: Date.now() }); // 매핑번호 : 2, 페이로드 : 시작시간
+  await sendEvent(2, { timestamp: Date.now() }).then((data) => {
+    if (data.handlerId === 2) {
+      score.highScore = data.currentHigh;
+      console.log(data);
+    }
+  });
 }
 // [함수] 유저가 재시작을 희망하는지 확인 (키보드를 눌렀는지 체크하고, 게임을 리센)
 function setupGameReset() {
@@ -175,7 +201,7 @@ function clearScreen() {
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
-// [함수]
+// [함수] 게임 루프
 function gameLoop(currentTime) {
   // (0) 게임 첫 시작 시 previousTime을 함수 실행 시간으로 업데이트
   if (previousTime === null) {
@@ -193,32 +219,60 @@ function gameLoop(currentTime) {
   // (3) 화면 초기화, 전부 흰색 네모로 덮음
   clearScreen();
   // (4 a) 게임이 진행 중이라면, 요소들 프레임 업데이트
-  if (!gameover && !waitingToStart) {
+  if (!gameover && !stage.isClear && !waitingToStart) {
     ground.update(gameSpeed, deltaTime); // 바닥
+    boss.update(gameSpeed, deltaTime); // 보스
     cactiController.update(gameSpeed, deltaTime); // 선인장 조작
-    itemController.update(gameSpeed, deltaTime); // 아이템 조작
+    itemController.update(stage.stage, gameSpeed, deltaTime); // 아이템 조작
     player.update(gameSpeed, deltaTime); // 플레이어
-    updateGameSpeed(deltaTime); // 게임 속도 가속
-    score.update(deltaTime); // 점수 시간에 따라 증가
+    updateGameSpeed(stage.stage); // 스테이지별 게임 속도 차등
+    stage.update(deltaTime); // 스테이지 시간에 따라 증가
+    // 별 먹은 상태라면 타이머 on, 5초 목표로 300 했는데 2초만에 끝나서 600
+    if (player.isStar) {
+      starTimer += 1;
+      if (starTimer >= 600) {
+        starTimer = 0;
+        player.isStar = false;
+      }
+    }
   }
+
   // (4 b) 게임 진행 중 선인장과 충돌했다면 게임 오버
-  if (!gameover && cactiController.collideWith(player)) {
+  if (!player.isStar && !gameover && !stage.isClear && cactiController.collideWith(player)) {
     gameover = true;
-    score.setHighScore();
     setupGameReset();
+    // 서버에게 이벤트 처리 요청, gameEnd 핸들러가 담당
+    sendEvent(3, { timestamp: Date.now(), score: score.score, clear: false });
   }
+
   // (4 c) 게임 진행 중 아이템과 충돌했다면 점수 업
   const collideWithItem = itemController.collideWith(player); //
   // 충돌한 아이템의 ID 가져와 점수 차등 적용
   if (collideWithItem && collideWithItem.itemId) {
-    score.getItem(collideWithItem.itemId);
+    score.getItem(collideWithItem.itemId, stage.stage, Date.now());
+    // 충돌한 게 별이면 특수 효과 ON
+    if (collideWithItem.itemId === 6) {
+      player.isStar = true;
+      starTimer = 0; // 별 상태일 때 별 먹으면 연장될 수 있도록!
+    }
+  }
+
+  // (4 d) 스테이지 5에서 25초 버텼을 시 게임 클리어
+  if (!gameover && !stage.isClear && stage.stage === 5 && stage.time >= stage.stage * 5) {
+    stage.gameClear();
+    setupGameReset();
+    // 서버에게 이벤트 처리 요청, gameEnd 핸들러가 담당
+    sendEvent(3, { timestamp: Date.now(), score: score.score, clear: true });
   }
   // (5) 요소들 화면에 그리기
+  ground.draw();
   player.draw();
   cactiController.draw();
-  ground.draw();
-  score.draw();
   itemController.draw();
+  boss.draw();
+  score.draw();
+  stage.draw();
+
   // (6) 게임오버 시 게임오버 화면 띄우기
   if (gameover) {
     showGameOver();
@@ -227,7 +281,11 @@ function gameLoop(currentTime) {
   if (waitingToStart) {
     showStartGameText();
   }
-  // (8) 재귀 호출 (무한반복)
+  // (8) 게임 클리어 시 게임클리어 화면 띄우기
+  if (stage.isClear) {
+    showGameClear();
+  }
+  // (9) 재귀 호출 (무한반복)
   requestAnimationFrame(gameLoop);
 }
 // [6] 프레임마다 게임 애니메이션 그려나감
