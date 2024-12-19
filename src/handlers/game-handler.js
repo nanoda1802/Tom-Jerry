@@ -11,6 +11,7 @@ export const gameStart = (uuid, payload) => {
   // [2] 사용자의 기존 스테이지 상태 초기화
   clearStage(uuid);
   clearItems(uuid);
+  const currentHigh = getHigh().high;
   // [3] 새 게임의 첫 스테이지 설정
   // ?? 이거 조정하면 이어하기도 가능하겠는데....??
   setStage(uuid, stages.data[0].id, payload.timestamp);
@@ -18,7 +19,7 @@ export const gameStart = (uuid, payload) => {
   // 첫 스테이지 정보만 있는 게 맞는지, 초기화 잘 됐는지 확인 위함
   console.log(`Stage : `, getStage(uuid));
   // [5] 클라이언트에게 성공 응답 반환
-  return { status: "success", message: "게임이 시작됐수!!!" };
+  return { status: "success", message: "게임이 시작됐수!!!", currentHigh };
 };
 
 /* 게임 종료!! */
@@ -63,10 +64,10 @@ export const gameEnd = (uuid, payload) => {
     return { status: "fail", message: "이렇게 빨리 깰 리가 없어요?" };
   }
   // 하이스코어 갱신을 여기서 해줘야하는가봉가봉가?
-  const highScore = getHigh();
+  const highScore = getHigh().high;
   if (myScore > highScore) {
     setHigh(uuid, myScore);
-    return { status: "success", broadcast: `${myScore} 점으로 최고기록이 갱신됐어요!!`, message: "게임이 종료됐수!!" };
+    return { status: "success", broadcast: `${myScore} 점으로 최고기록이 갱신됐어요!!`, message: "게임이 종료됐수!!", myScore };
   }
   // [6] 점수 검증 성공 응답
   return { status: "success", message: "게임이 종료됐수!!", myScore };
